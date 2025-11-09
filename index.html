@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Weapon Generator ⚔️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e0342, #2d1b69, #1a4d8f);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 2px solid #9333ea;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #c084fc, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .weapon-display {
+            background: #1f2937;
+            border-radius: 15px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #374151;
+        }
+
+        .weapon-name {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .weapon-name.epic {
+            color: #fbbf24;
+        }
+
+        .weapon-name.silly {
+            color: #34d399;
+        }
+
+        .rarity-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #374151;
+        }
+
+        .rarity {
+            color: #9ca3af;
+            font-size: 0.95rem;
+        }
+
+        .rarity-value {
+            color: #c084fc;
+            font-weight: 600;
+        }
+
+        .percentage {
+            color: #60a5fa;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #111827;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stat-bar {
+            height: 6px;
+            background: #374151;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+            transition: width 0.5s ease;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(to right, #9333ea, #ec4899);
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);
+        }
+
+        .generate-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(147, 51, 234, 0.6);
+        }
+
+        .generate-btn:active {
+            transform: scale(0.98);
+        }
+
+        .icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            color: #6b7280;
+            font-size: 2rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .weapon-name {
+                font-size: 1.5rem;
+            }
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>⚔️ Weapon Generator ⚔️</h1>
+            <p class="subtitle">From epic to absolutely ridiculous</p>
+
+            <div class="weapon-display">
+                <div class="weapon-name" id="weaponName">Click to generate!</div>
+                <div id="rarityInfo" style="display: none;">
+                    <div class="rarity-section">
+                        <div class="rarity">
+                            Rarity: <span class="rarity-value" id="rarityText"></span>
+                        </div>
+                        <div class="percentage" id="percentageText"></div>
+                    </div>
+                    <div class="stats-container" id="statsContainer"></div>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateWeapon()">Generate Weapon!</button>
+
+            <div class="icons">
+                <span>⚔️</span>
+                <span>🪄</span>
+                <span>🪓</span>
+                <span>🛡️</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const weaponTypes = [
+            { name: 'Sword', melee: true, ranged: false },
+            { name: 'Wand', melee: false, ranged: true },
+            { name: 'Axe', melee: true, ranged: false },
+            { name: 'Bow', melee: false, ranged: true },
+            { name: 'Staff', melee: true, ranged: true },
+            { name: 'Dagger', melee: true, ranged: false },
+            { name: 'Hammer', melee: true, ranged: false },
+            { name: 'Spear', melee: true, ranged: true },
+            { name: 'Stick', melee: true, ranged: false },
+            { name: 'Bat', melee: true, ranged: false },
+            { name: 'Mace', melee: true, ranged: false },
+            { name: 'Scythe', melee: true, ranged: false },
+            { name: 'Trident', melee: true, ranged: true },
+            { name: 'Katana', melee: true, ranged: false },
+            { name: 'Saber', melee: true, ranged: false },
+            { name: 'Cleaver', melee: true, ranged: false },
+            { name: 'Blade', melee: true, ranged: false },
+            { name: 'Lance', melee: true, ranged: false },
+            { name: 'Crossbow', melee: false, ranged: true }
+        ];
+
+        const epicPrefixes = ['The Legendary', 'The Ancient', 'The Cursed', 'The Divine', 'The Eternal', 'The Forbidden', 'The Sacred', 'The Demonic', 'The Celestial', 'The Mythical', 'The Infernal', 'The Holy', 'The Dark', 'The Radiant', 'The Supreme', 'The Ultimate', 'The Primordial'];
+
+        const epicAdjectives = ['Flaming', 'Frozen', 'Thunder', 'Shadow', 'Light', 'Death', 'Life', 'Chaos', 'Order', 'Void', 'Dragon', 'Phoenix', 'Demon', 'Angel', 'Blood', 'Storm', 'Flame', 'Ice', 'Lightning', 'Poison', 'Spectral', 'Unholy', 'Blessed', 'Corrupted', 'Pure', 'Crimson', 'Azure', 'Golden', 'Silver', 'Obsidian'];
+
+        const epicNouns = ['Destroyer', 'Bringer', 'Slayer', 'Reaper', 'Keeper', 'Master', 'Lord', 'King', 'Blade', 'Edge', 'Wrath', 'Fury', 'Doom', 'Ruin', 'Annihilator', 'Vanquisher', 'Executioner', 'Harbinger', 'Eater', 'Breaker'];
+
+        const epicSuffixes = ['of the Apocalypse', 'of Eternity', 'of the Void', 'of the Damned', 'of the Heavens', 'of the Underworld', 'of the Ancients', 'of Ragnarok', 'of Judgement', 'of the Gods', 'of Destiny', 'of Power', 'of Souls', 'of Nightmares', 'of Dreams'];
+
+        const sillyPrefixes = ["Greg's", "Bob's", "Karen's", "Jeff's", "Your Mom's", "The Neighbor's", "Uncle Joe's", "Timmy's", "Chad's", "Steve's", "Kevin's", "Brandon's", "Kyle's"];
+
+        const sillyAdjectives = ['Poopy', 'Stinky', 'Weird', 'Soggy', 'Crusty', 'Moldy', 'Rusty', 'Broken', 'Lame', 'Sad', 'Silly', 'Goofy', 'Dumb', 'Smelly', 'Ugly', 'Wimpy', 'Pathetic', 'Janky', 'Questionable', 'Sus'];
+
+        const sillyNouns = ['of Sadness', 'of Shame', 'of Disappointment', 'of Regret', 'of Confusion', 'of Boredom', 'of Memes', 'of Cringe', 'That Sucks', 'of Failure', 'of Embarrassment', 'of Awkwardness'];
+
+        function random(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function randomStat(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateWeapon() {
+            const weaponType = random(weaponTypes);
+            const isEpic = Math.random() > 0.2;
+
+            // Ultra rare chance for 1-word name (0.1% = 1 in 1000)
+            const isOneWord = Math.random() < 0.001;
+
+            let partCount;
+            if (isOneWord) {
+                partCount = 1;
+            } else {
+                const rand = Math.random();
+                if (rand < 0.15) partCount = 2;
+                else if (rand < 0.45) partCount = 3;
+                else if (rand < 0.75) partCount = 4;
+                else if (rand < 0.90) partCount = 5;
+                else if (rand < 0.97) partCount = 6;
+                else partCount = 7 + Math.floor(Math.random() * 3);
+            }
+
+            let parts = [];
+            let totalPossibilities = 1;
+
+            if (isOneWord) {
+                parts.push(weaponType.name);
+                totalPossibilities = weaponTypes.length;
+            } else if (isEpic) {
+                if (partCount >= 3) {
+                    parts.push(random(epicPrefixes));
+                    totalPossibilities *= epicPrefixes.length;
+                }
+
+                const adjCount = Math.max(1, Math.min(partCount - 2, 4));
+                for (let i = 0; i < adjCount; i++) {
+                    parts.push(random(epicAdjectives));
+                    totalPossibilities *= epicAdjectives.length;
+                }
+
+                parts.push(weaponType.name);
+                totalPossibilities *= weaponTypes.length;
+
+                if (partCount >= 3) {
+                    const nounCount = Math.max(1, Math.min(Math.floor((partCount - 1) / 2), 3));
+                    for (let i = 0; i < nounCount; i++) {
+                        parts.push(random(epicNouns));
+                        totalPossibilities *= epicNouns.length;
+                    }
+                }
+
+                if (partCount >= 4) {
+                    parts.push(random(epicSuffixes));
+                    totalPossibilities *= epicSuffixes.length;
+                }
+            } else {
+                parts.push(random(sillyPrefixes));
+                totalPossibilities *= sillyPrefixes.length;
+
+                const adjCount = Math.max(1, Math.min(partCount - 1, 3));
+                for (let i = 0; i < adjCount; i++) {
+                    parts.push(random(sillyAdjectives));
+                    totalPossibilities *= sillyAdjectives.length;
+                }
+
+                parts.push(weaponType.name);
+                totalPossibilities *= weaponTypes.length;
+
+                if (partCount >= 3) {
+                    parts.push(random(sillyNouns));
+                    totalPossibilities *= sillyNouns.length;
+                }
+            }
+
+            const name = parts.join(' ');
+
+            // Generate stats
+            const stats = {};
+            
+            if (weaponType.melee) {
+                stats.damage = randomStat(1, 100);
+                stats.attackSpeed = randomStat(1, 100);
+                stats.criticalDamage = randomStat(1, 100);
+                stats.reach = randomStat(1, 100);
+            }
+            
+            if (weaponType.ranged) {
+                stats.shootingSpeed = randomStat(1, 100);
+                if (weaponType.name === 'Bow' || weaponType.name === 'Crossbow') {
+                    stats.arrowSpeed = randomStat(1, 100);
+                }
+            }
+
+            // Calculate stat rarity bonus (much simpler)
+            let statRarityMultiplier = 1;
+            Object.values(stats).forEach(val => {
+                if (val >= 98) statRarityMultiplier *= 2;
+                else if (val <= 2) statRarityMultiplier *= 2;
+            });
+
+            // Simplified probability calculation
+            // Base it mainly on part count
+            let baseRarity;
+            if (isOneWord) {
+                baseRarity = 10000; // 1 in 10k for single word
+            } else if (partCount === 2) baseRarity = 50;
+            else if (partCount === 3) baseRarity = 200;
+            else if (partCount === 4) baseRarity = 800;
+            else if (partCount === 5) baseRarity = 3000;
+            else if (partCount === 6) baseRarity = 10000;
+            else baseRarity = 50000;
+
+            const finalRarity = baseRarity * statRarityMultiplier;
+            const exactProb = 1 / finalRarity;
+            const percentage = (exactProb * 100);
+
+            let rarityText;
+            const chance = 1 / exactProb;
+            if (chance < 1000000) {
+                rarityText = '1 in ' + Math.round(chance).toLocaleString();
+            } else {
+                rarityText = '1 in ' + chance.toExponential(2);
+            }
+
+            // Update display
+            const weaponNameEl = document.getElementById('weaponName');
+            weaponNameEl.textContent = name;
+            weaponNameEl.className = 'weapon-name ' + (isEpic ? 'epic' : 'silly');
+
+            document.getElementById('rarityText').textContent = rarityText;
+            
+            let percentageStr;
+            if (percentage < 0.000001) {
+                percentageStr = '(' + percentage.toExponential(4) + '% chance)';
+            } else if (percentage < 0.01) {
+                percentageStr = '(' + percentage.toFixed(8) + '% chance)';
+            } else {
+                percentageStr = '(' + percentage.toFixed(4) + '% chance)';
+            }
+            document.getElementById('percentageText').textContent = percentageStr;
+
+            // Display stats
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = '';
+            
+            for (const [key, value] of Object.entries(stats)) {
+                const statDiv = document.createElement('div');
+                statDiv.className = 'stat-item';
+                
+                const label = key.replace(/([A-Z])/g, ' $1').trim();
+                const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+                
+                statDiv.innerHTML = 
+                    '<div class="stat-label">' + capitalizedLabel + '</div>' +
+                    '<div class="stat-value">' + value + '</div>' +
+                    '<div class="stat-bar"><div class="stat-bar-fill" style="width: ' + value + '%"></div></div>';
+                
+                statsContainer.appendChild(statDiv);
+            }
+
+            document.getElementById('rarityInfo').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
