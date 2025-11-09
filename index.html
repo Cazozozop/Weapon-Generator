@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+.weapon-name.normal {
+            color: #94a3b8;
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -252,6 +254,10 @@
 
         const sillyNouns = ['of Sadness', 'of Shame', 'of Disappointment', 'of Regret', 'of Confusion', 'of Boredom', 'of Memes', 'of Cringe', 'That Sucks', 'of Failure', 'of Embarrassment', 'of Awkwardness'];
 
+        const normalPrefixes = ['Iron', 'Steel', 'Wooden', 'Stone', 'Bronze', 'Copper', 'Simple', 'Basic', 'Common', 'Plain', 'Rusty', 'Old', 'New', 'Heavy', 'Light'];
+        
+        const normalAdjectives = ['Sharp', 'Dull', 'Long', 'Short', 'Thin', 'Thick', 'Balanced', 'Sturdy', 'Lightweight', 'Standard', 'Regular', 'Average'];
+
         function random(arr) {
             return arr[Math.floor(Math.random() * arr.length)];
         }
@@ -262,7 +268,6 @@
 
         function generateWeapon() {
             const weaponType = random(weaponTypes);
-            const isEpic = Math.random() > 0.2;
 
             // Ultra rare chance for 1-word name (0.1% = 1 in 1000)
             const isOneWord = Math.random() < 0.001;
@@ -281,58 +286,84 @@
             }
 
             let parts = [];
-            let totalPossibilities = 1;
+            let styleInfo = { epic: 0, silly: 0, normal: 0 };
 
             if (isOneWord) {
                 parts.push(weaponType.name);
-                totalPossibilities = weaponTypes.length;
-            } else if (isEpic) {
+            } else {
+                // Mix different styles together!
+                
+                // Prefix (if 3+ parts)
                 if (partCount >= 3) {
-                    parts.push(random(epicPrefixes));
-                    totalPossibilities *= epicPrefixes.length;
-                }
-
-                const adjCount = Math.max(1, Math.min(partCount - 2, 4));
-                for (let i = 0; i < adjCount; i++) {
-                    parts.push(random(epicAdjectives));
-                    totalPossibilities *= epicAdjectives.length;
-                }
-
-                parts.push(weaponType.name);
-                totalPossibilities *= weaponTypes.length;
-
-                if (partCount >= 3) {
-                    const nounCount = Math.max(1, Math.min(Math.floor((partCount - 1) / 2), 3));
-                    for (let i = 0; i < nounCount; i++) {
-                        parts.push(random(epicNouns));
-                        totalPossibilities *= epicNouns.length;
+                    const prefixRand = Math.random();
+                    if (prefixRand < 0.5) {
+                        parts.push(random(epicPrefixes));
+                        styleInfo.epic++;
+                    } else if (prefixRand < 0.75) {
+                        parts.push(random(sillyPrefixes));
+                        styleInfo.silly++;
+                    } else {
+                        parts.push(random(normalPrefixes));
+                        styleInfo.normal++;
                     }
                 }
 
-                if (partCount >= 4) {
-                    parts.push(random(epicSuffixes));
-                    totalPossibilities *= epicSuffixes.length;
-                }
-            } else {
-                parts.push(random(sillyPrefixes));
-                totalPossibilities *= sillyPrefixes.length;
-
-                const adjCount = Math.max(1, Math.min(partCount - 1, 3));
+                // Adjectives
+                const adjCount = Math.max(1, Math.min(partCount - 2, 4));
                 for (let i = 0; i < adjCount; i++) {
-                    parts.push(random(sillyAdjectives));
-                    totalPossibilities *= sillyAdjectives.length;
+                    const adjRand = Math.random();
+                    if (adjRand < 0.5) {
+                        parts.push(random(epicAdjectives));
+                        styleInfo.epic++;
+                    } else if (adjRand < 0.75) {
+                        parts.push(random(sillyAdjectives));
+                        styleInfo.silly++;
+                    } else {
+                        parts.push(random(normalAdjectives));
+                        styleInfo.normal++;
+                    }
                 }
 
+                // Weapon type
                 parts.push(weaponType.name);
-                totalPossibilities *= weaponTypes.length;
 
+                // Nouns
                 if (partCount >= 3) {
-                    parts.push(random(sillyNouns));
-                    totalPossibilities *= sillyNouns.length;
+                    const nounCount = Math.max(1, Math.min(Math.floor((partCount - 1) / 2), 3));
+                    for (let i = 0; i < nounCount; i++) {
+                        const nounRand = Math.random();
+                        if (nounRand < 0.6) {
+                            parts.push(random(epicNouns));
+                            styleInfo.epic++;
+                        } else {
+                            parts.push(random(sillyNouns));
+                            styleInfo.silly++;
+                        }
+                    }
+                }
+
+                // Suffix
+                if (partCount >= 4) {
+                    const suffixRand = Math.random();
+                    if (suffixRand < 0.7) {
+                        parts.push(random(epicSuffixes));
+                        styleInfo.epic++;
+                    } else {
+                        parts.push(random(sillyNouns));
+                        styleInfo.silly++;
+                    }
                 }
             }
 
             const name = parts.join(' ');
+
+            // Determine dominant style for color
+            let dominantStyle = 'normal';
+            if (styleInfo.epic > styleInfo.silly && styleInfo.epic > styleInfo.normal) {
+                dominantStyle = 'epic';
+            } else if (styleInfo.silly > styleInfo.epic && styleInfo.silly > styleInfo.normal) {
+                dominantStyle = 'silly';
+            }
 
             // Generate stats
             const stats = {};
@@ -351,41 +382,61 @@
                 }
             }
 
-            // Calculate stat rarity bonus (much simpler)
+            // Calculate stat rarity bonus (stats heavily influence rarity now!)
             let statRarityMultiplier = 1;
+            let perfectStats = 0;
+            let veryHighStats = 0;
+            let highStats = 0;
+            let veryLowStats = 0;
+            let perfectLowStats = 0;
+            
             Object.values(stats).forEach(val => {
-                if (val >= 98) statRarityMultiplier *= 2;
-                else if (val <= 2) statRarityMultiplier *= 2;
+                if (val === 100) {
+                    perfectStats++;
+                    statRarityMultiplier *= 100;
+                } else if (val >= 95) {
+                    veryHighStats++;
+                    statRarityMultiplier *= 20;
+                } else if (val >= 85) {
+                    highStats++;
+                    statRarityMultiplier *= 5;
+                } else if (val >= 75) {
+                    statRarityMultiplier *= 2;
+                }
+                
+                if (val === 1) {
+                    perfectLowStats++;
+                    statRarityMultiplier *= 100;
+                } else if (val <= 5) {
+                    veryLowStats++;
+                    statRarityMultiplier *= 20;
+                } else if (val <= 15) {
+                    statRarityMultiplier *= 5;
+                }
             });
 
-            // Simplified probability calculation
-            // Base it mainly on part count
+            // Base rarity from name length
             let baseRarity;
             if (isOneWord) {
-                baseRarity = 10000; // 1 in 10k for single word
+                baseRarity = 10000;
             } else if (partCount === 2) baseRarity = 50;
-            else if (partCount === 3) baseRarity = 200;
-            else if (partCount === 4) baseRarity = 800;
-            else if (partCount === 5) baseRarity = 3000;
-            else if (partCount === 6) baseRarity = 10000;
-            else baseRarity = 50000;
+            else if (partCount === 3) baseRarity = 150;
+            else if (partCount === 4) baseRarity = 500;
+            else if (partCount === 5) baseRarity = 2000;
+            else if (partCount === 6) baseRarity = 8000;
+            else baseRarity = 30000;
 
-            const finalRarity = baseRarity * statRarityMultiplier;
+            const finalRarity = Math.round(baseRarity * statRarityMultiplier);
             const exactProb = 1 / finalRarity;
             const percentage = (exactProb * 100);
 
             let rarityText;
-            const chance = 1 / exactProb;
-            if (chance < 1000000) {
-                rarityText = '1 in ' + Math.round(chance).toLocaleString();
-            } else {
-                rarityText = '1 in ' + chance.toExponential(2);
-            }
+            rarityText = '1 in ' + Math.round(finalRarity).toLocaleString();
 
             // Update display
             const weaponNameEl = document.getElementById('weaponName');
             weaponNameEl.textContent = name;
-            weaponNameEl.className = 'weapon-name ' + (isEpic ? 'epic' : 'silly');
+            weaponNameEl.className = 'weapon-name ' + dominantStyle;
 
             document.getElementById('rarityText').textContent = rarityText;
             
